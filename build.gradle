@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.5.4'
+    id 'io.spring.dependency-management' version '1.1.0'
+}
+
+group = 'com.usersystem'
+//version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '1.8'
+}
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+}
+
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.security:spring-security-core'
+    implementation 'org.springframework:spring-context-support'
+    // Spring Boot web starter
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Spring Boot test starter
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    // Mybatis starter
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.0'
+    // MySQL driver
+    runtimeOnly 'mysql:mysql-connector-java'
+    // Lombok annotation processor
+    annotationProcessor 'org.projectlombok:lombok'
+    // Lombok library
+    compileOnly 'org.projectlombok:lombok'
+    // swagger
+    implementation 'org.springdoc:springdoc-openapi-ui:1.5.12'
+
+}
+
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
