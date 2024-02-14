@@ -2,49 +2,60 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.userSystem.user.UserMapper">
+<mapper namespace="com.userSystem.dao.UserMapper">
     <!-- 插入一個用戶 -->
-    <insert id="insertUser" parameterType="com.userSystem.user.model.UserRo">
+    <insert id="insertUser" parameterType="com.userSystem.model.UserBo">
         insert into user_system.user (account, password, username, email)
         values (#{account}, #{password}, #{username}, #{email})
     </insert>
 
     <!-- 根據 id 查詢一個用戶 -->
-    <select id="selectUserById" parameterType="long" resultType="com.userSystem.user.model.UserRo">
+    <select id="selectUserById" parameterType="long" resultType="com.userSystem.model.UserRo">
         select id, account, password, username
         from user_system.user
         where id = #{id}
     </select>
     <!-- 根據 account、password 查詢一個用戶 -->
-    <select id="selectUserByAccountPassword" parameterType="com.userSystem.user.model.UserRo"
-            resultType="com.userSystem.user.model.UserVo">
+    <select id="selectUserByAccountPassword" parameterType="com.userSystem.model.UserBo"
+            resultType="com.userSystem.model.UserVo">
         select account, username, email
         from user_system.user
         where account = #{account}
           and password = #{password}
     </select>
     <!-- 查詢所有用戶 -->
-    <select id="selectAllUser" resultType="com.userSystem.user.model.UserRo">
+    <select id="selectAllUser" resultType="com.userSystem.model.UserRo">
         select id, account, password, username
         from user_system.user
     </select>
     <!-- 根據 id 更新一個用戶 -->
-    <update id="updateUserById" parameterType="com.userSystem.user.model.UserRo">
+    <update id="updateUserById" parameterType="com.userSystem.model.UserRo">
         update user_system.user
         set account  = #{account},
             username = #{username},
             password = #{password}
         where id = #{id}
     </update>
-    <!-- 根據 account、password 更新一個用戶 -->
-    <update id="updateUser" parameterType="com.userSystem.user.model.UserRo">
-        update user_system.user
-        set account  = #{account},
+
+    <!-- 根據 account、password 更新一個用戶，如果null則不更新 -->
+    <update id="updateUser" parameterType="com.userSystem.model.UserBo">
+        UPDATE user_system.user
+        <trim prefix="set" suffixOverrides=",">
+        <if test="newPassword != null">
+            password = #{newPassword},
+        </if>
+        <if test="username != null">
             username = #{username},
-            password = #{newPassword}
-        where account = #{account}
-          and password = #{password}
+        </if>
+        <if test="email != null">
+            email = #{email}
+        </if>
+        </trim>
+        WHERE account = #{account}
+        AND password = #{password}
     </update>
+
+
     <!-- 根據 id 刪除一個用戶 -->
     <delete id="deleteUserById" parameterType="long">
         delete

@@ -1,4 +1,4 @@
-package com.userSystem.user.model;
+package com.userSystem.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

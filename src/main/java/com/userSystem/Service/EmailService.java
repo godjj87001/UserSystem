@@ -1,5 +1,7 @@
-package com.userSystem.mail;
+package com.userSystem.Service;
 
+import com.userSystem.model.EmailRO;
+import com.userSystem.model.ResponseVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;

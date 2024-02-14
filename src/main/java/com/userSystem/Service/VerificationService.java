@@ -1,6 +1,6 @@
-package com.userSystem.user;
+package com.userSystem.Service;
 
-import com.userSystem.mail.EmailService;
+import com.userSystem.Service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +15,6 @@ public class VerificationService {
 
 
     public void sendVerificationCode(String email) {
-        // 这是中文注释\u4E2D\u6587
-
         String verificationCode = generateCode();
 
         // 保存驗證碼到緩存中

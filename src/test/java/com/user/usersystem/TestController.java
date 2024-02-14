@@ -1,6 +1,6 @@
 package com.user.usersystem;
 
-import com.userSystem.mail.EmailService;
+import com.userSystem.Service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

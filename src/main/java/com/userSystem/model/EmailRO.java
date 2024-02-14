@@ -1,9 +1,8 @@
-package com.userSystem.mail;
+package com.userSystem.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Data;
 
-@JsonPOJOBuilder
 @Data
 public class EmailRO {
     private String receiver;

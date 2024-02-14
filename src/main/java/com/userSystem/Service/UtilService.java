@@ -1,19 +1,20 @@
-package com.userSystem;
+package com.userSystem.Service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import java.security.MessageDigest;
 import java.security.spec.KeySpec;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.Locale;
 
 @Service
 @Slf4j
 public class UtilService {
-
-
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     /**
      * PBKDF2 hash
      *
@@ -34,4 +35,16 @@ public class UtilService {
         }
         return "";
     }
+
+    /**
+     * 獲取當前時間
+     * @return string time
+     */
+    public String getLocalTime() {
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        return currentDateTime.format(formatter);
+    }
+
+
+
 }

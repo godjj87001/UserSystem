@@ -1,4 +1,4 @@
-package com.userSystem.mail;
+package com.userSystem.model;
 
 import lombok.Builder;
 import lombok.Data;

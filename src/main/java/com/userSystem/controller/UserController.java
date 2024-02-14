@@ -1,30 +1,32 @@
 package com.userSystem.controller;
 
-import com.userSystem.mail.ResponseVo;
-import com.userSystem.user.UserService;
-import com.userSystem.user.model.UserRo;
-import com.userSystem.user.model.UserVo;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.userSystem.model.ResponseVo;
+import com.userSystem.Service.UserService;
+import com.userSystem.model.UserRo;
+import com.userSystem.model.UserVo;
+import org.apache.catalina.connector.Request;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
 @RequestMapping("/user")
 @ResponseBody
 public class UserController {
-
-    @Autowired
     private UserService userService;
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/login")
-    public UserVo loginUser(@RequestBody UserRo userRo) {
-        return userService.loginUser(userRo);
+    public UserVo loginUser(@RequestBody UserRo userRo, HttpServletRequest request) {
+        return userService.loginUser(userRo,request );
     }
 
     @PostMapping("")
-    public ResponseVo createUser(@RequestBody UserRo userRo) {
-       return userService.createUser(userRo);
+    public ResponseVo createUser(@RequestBody UserRo userRo,HttpServletRequest request) {
+       return userService.createUser(userRo,request);
     }
 
     @PostMapping("/forgot_password")
@@ -33,8 +35,8 @@ public class UserController {
     }
 
     @PutMapping("")
-    public void updateUser(@RequestBody UserRo userRo) {
-        userService.updateUser(userRo);
+    public ResponseVo updateUser(@RequestBody UserRo userRo,HttpServletRequest request) {
+        return userService.updateUser(userRo,request );
     }
 
     @GetMapping("/{id}")

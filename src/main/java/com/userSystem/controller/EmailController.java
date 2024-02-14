@@ -1,9 +1,8 @@
 package com.userSystem.controller;
 
-import com.userSystem.mail.EmailRO;
-import com.userSystem.mail.EmailService;
-import com.userSystem.mail.ResponseVo;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import com.userSystem.model.EmailRO;
+import com.userSystem.Service.EmailService;
+import com.userSystem.model.ResponseVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

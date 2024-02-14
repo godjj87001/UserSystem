@@ -1,4 +1,4 @@
-package com.userSystem.user.model;
+package com.userSystem.model;
 
 
 import lombok.AllArgsConstructor;
@@ -10,13 +10,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+//Resource Object
 public class UserRo {
     private Long id;
     private String account;
     private String password;
     private String username;
-    private String newPassword;
     private String email;
-    private String OTPCode;
+    private String newPassword; //change password
+    private String confirmPassword; //check newPassword = confirmPassword
 }
-
