@@ -1,15 +1,19 @@
 package com.userSystem.Service;
 
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.userSystem.Enum.MessageEnum;
 import com.userSystem.dao.LogMapper;
 import com.userSystem.model.*;
 import com.userSystem.dao.UserMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.connector.Request;
+import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -75,9 +79,9 @@ public class UserService {
         UserVo userVo = loginUser(userRo);
         ResponseVo responseVo;
         if (userVo.getAccount() != null) {
-            responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_OK).message("login Success").build();
+            responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_OK).message(MessageEnum.LOGIN_SUCCESS.getMessage()).build();
         } else {
-            responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_UNAUTHORIZED).message("account or password error").build();
+            responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_UNAUTHORIZED).message(MessageEnum.ACCOUNT_PASSWORD_ERROR.getMessage()).build();
         }
         LogDto logDto = new LogDto(userRo, request, responseVo);
         logMapper.insertApiLog(logDto);
@@ -144,12 +148,40 @@ public class UserService {
      */
     public ResponseVo forgotPassword(UserRo userRo) {
         if (userRo.getAccount() != null || userRo.getEmail() != null) {
-
+            UserBo userBo = new UserBo(userRo);
+            UserVo userVo = userMapper.selectUserByAccountOrEmail(userBo);
+            if (userVo.getEmail() != null) {
+                String jwtToken = generateJwtToken(userRo.getEmail());
+                EmailRO requestEntity = getForgotPasswordRequestEntity(jwtToken, userVo);
+                EmailRO emailRO = utilService.sendHttpPostRequest("/email", new HttpEntity<>(requestEntity), EmailRO.class);
+            } else {
+                ResponseVo.builder().httpCode(HttpServletResponse.SC_ACCEPTED).message(MessageEnum.ACCOUNT_PASSWORD_ERROR.getMessage()).build();
+            }
             return ResponseVo.builder().httpCode(HttpServletResponse.SC_ACCEPTED).message("Success").build();
         } else {
             return ResponseVo.builder().httpCode(HttpServletResponse.SC_BAD_REQUEST).message("Bad Request").build();
         }
     }
+
+    private EmailRO getForgotPasswordRequestEntity(String jwtToken, UserVo userVo) {
+        EmailRO emailRO = new EmailRO();
+        emailRO.setContent(jwtToken);
+        emailRO.setReceiver(userVo.getEmail());
+        emailRO.setSubject("忘記密碼");
+        return emailRO;
+    }
+
+    private String generateJwtToken(String identifier) {
+        long EXPIRATION_TIME = 86400000; //24 hours
+        // Use your JWT library (e.g., Auth0 Java JWT) to create a token with the user identifier
+        // Example using Auth0 Java JWT:
+        Algorithm algorithm = Algorithm.HMAC256("forgotPassword");
+        return JWT.create()
+                .withClaim("email", identifier)
+                .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .sign(algorithm);
+    }
+
 
 }
 

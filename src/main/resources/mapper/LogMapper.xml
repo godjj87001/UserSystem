@@ -8,5 +8,21 @@
         insert into user_system.api_log (account, request_api,http_code, message)
         values (#{account}, #{requestApi}, #{httpCode} ,#{message})
     </insert>
-
+    <!-- Create Table -->
+    <update id="createApiLog">
+        CREATE TABLE `api_log` (
+            `id` BIGINT(19) NOT NULL AUTO_INCREMENT,
+            `account` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `request_api` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `http_code` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `message` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `created_time` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            `updated_time` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`) USING BTREE
+        )
+        COLLATE='utf8mb4_general_ci'
+        ENGINE=InnoDB
+        ROW_FORMAT=DYNAMIC
+        ;
+    </update>
 </mapper>

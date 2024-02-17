@@ -3,11 +3,39 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.userSystem.dao.UserMapper">
+
+    <!-- Create Database -->
+    <update id="createDatabase">
+        CREATE DATABASE IF NOT EXISTS `user_system`;
+    </update>
+
+    <!-- Create Table -->
+    <update id="createUserSystemTable">
+        CREATE TABLE `user_system`.`user`
+        (
+            `id`         INT(11) NOT NULL AUTO_INCREMENT COMMENT 'Unique identifier',
+            `account`    VARCHAR(50)  NOT NULL COMMENT '帳號',
+            `password`   VARCHAR(255) NOT NULL DEFAULT '' COMMENT '密碼',
+            `username`   VARCHAR(50)  NOT NULL DEFAULT '' COMMENT 'User名稱' COLLATE 'utf8_general_ci',
+            `email`      VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'email',
+            `created_at` DATETIME     NOT NULL DEFAULT current_timestamp() COMMENT '建立時間',
+            `updated_at` DATETIME     NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp () COMMENT '最後更新時間',
+            PRIMARY KEY (`id`) USING BTREE
+        ) COMMENT='' COLLATE='utf8_general_ci' ENGINE=InnoDB;
+    </update>
     <!-- 插入一個用戶 -->
     <insert id="insertUser" parameterType="com.userSystem.model.UserBo">
         insert into user_system.user (account, password, username, email)
         values (#{account}, #{password}, #{username}, #{email})
     </insert>
+
+    <!-- 根據 dbName TableName 查詢是否存在 -->
+    <select id="checkTableExistence" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM information_schema.tables
+        WHERE table_schema = #{dbName}
+          AND table_name = #{tableName}
+    </select>
 
     <!-- 根據 id 查詢一個用戶 -->
     <select id="selectUserById" parameterType="long" resultType="com.userSystem.model.UserRo">
@@ -22,6 +50,14 @@
         from user_system.user
         where account = #{account}
           and password = #{password}
+    </select>
+
+    <select id="selectUserByAccountOrEmail" parameterType="com.userSystem.model.UserBo"
+            resultType="com.userSystem.model.UserVo">
+        select account, username, email
+        from user_system.user
+        where account = #{account}
+           or email = #{email}
     </select>
     <!-- 查詢所有用戶 -->
     <select id="selectAllUser" resultType="com.userSystem.model.UserRo">
@@ -41,15 +77,15 @@
     <update id="updateUser" parameterType="com.userSystem.model.UserBo">
         UPDATE user_system.user
         <trim prefix="set" suffixOverrides=",">
-        <if test="newPassword != null">
-            password = #{newPassword},
-        </if>
-        <if test="username != null">
-            username = #{username},
-        </if>
-        <if test="email != null">
-            email = #{email}
-        </if>
+            <if test="newPassword != null">
+                password = #{newPassword},
+            </if>
+            <if test="username != null">
+                username = #{username},
+            </if>
+            <if test="email != null">
+                email = #{email}
+            </if>
         </trim>
         WHERE account = #{account}
         AND password = #{password}

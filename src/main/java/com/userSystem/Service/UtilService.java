@@ -1,7 +1,11 @@
 package com.userSystem.Service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -15,6 +19,8 @@ import java.util.Locale;
 @Slf4j
 public class UtilService {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final RestTemplate restTemplate = new RestTemplate();
+
     /**
      * PBKDF2 hash
      *
@@ -38,6 +44,7 @@ public class UtilService {
 
     /**
      * 獲取當前時間
+     *
      * @return string time
      */
     public String getLocalTime() {
@@ -45,6 +52,19 @@ public class UtilService {
         return currentDateTime.format(formatter);
     }
 
+
+    public  <T> T sendHttpRequest(String url, HttpMethod method, HttpEntity<?> requestEntity, Class<T> responseType) {
+        ResponseEntity<T> responseEntity = restTemplate.exchange(url, method, requestEntity, responseType);
+        return responseEntity.getBody();
+    }
+
+    public  <T> T sendHttpGetRequest(String url, Class<T> responseType) {
+        return sendHttpRequest(url, HttpMethod.GET, null, responseType);
+    }
+
+    public  <T> T sendHttpPostRequest(String url, HttpEntity<?> requestEntity, Class<T> responseType) {
+        return sendHttpRequest(url, HttpMethod.POST, requestEntity, responseType);
+    }
 
 
 }

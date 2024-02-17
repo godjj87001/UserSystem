@@ -2,8 +2,10 @@ package com.userSystem.Service;
 
 import com.userSystem.model.EmailRO;
 import com.userSystem.model.ResponseVo;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
@@ -43,10 +45,7 @@ public class EmailService {
         return successResponse;
     }
 
-    /**
-     * send text mail post
-     */
-    public ResponseVo sendSimpleMessage(EmailRO emailRO) {
+    public ResponseEntity<?> sendSimpleMessage(EmailRO emailRO) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(emailRO.getReceiver());
@@ -54,9 +53,9 @@ public class EmailService {
             message.setText(emailRO.getContent());
             emailSender.send(message);
         } catch (Exception e) {
-            return errorResponse;
+            log.error(""+e);
         }
-        return successResponse;
+        return ResponseEntity.ok(emailRO);
     }
 
 }

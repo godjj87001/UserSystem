@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface LogMapper {
     void insertApiLog(LogDto logDto);
+    void createApiLog();
 }

@@ -36,8 +36,9 @@ dependencies {
     // Lombok library
     compileOnly 'org.projectlombok:lombok'
     // swagger
-    implementation 'org.springdoc:springdoc-openapi-ui:1.5.12'
-
+    implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
+    // jwt auth0
+    implementation 'com.auth0:java-jwt:3.18.1'
 }
 
 
