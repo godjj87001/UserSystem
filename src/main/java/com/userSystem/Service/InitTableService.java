@@ -46,7 +46,7 @@ public class InitTableService {
         if (checkCount == 0) {
             log.info("Table does not exist. Creating the table.");
             if ("user".equals(tableName)) {
-                userMapper.createUserSystem();
+                userMapper.createUserSystemTable();
             } else if ("api_log".equals(tableName)) {
                 logMapper.createApiLog();
             }

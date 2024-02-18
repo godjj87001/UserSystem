@@ -1,6 +1,8 @@
 package com.userSystem.model;
 
 import lombok.Data;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -11,10 +13,11 @@ public class LogDto {
     private int httpCode;
     private String message;
 
-    public LogDto(UserRo userRo, HttpServletRequest request , ResponseVo responseVo) {
+
+    public LogDto(UserRo userRo, HttpServletRequest request, int httpCode, String message) {
         this.account = userRo.getAccount();
-        this.requestApi = request.getRequestURI().toString();
-        this.httpCode =responseVo.getHttpCode();
-        this.message = responseVo.getMessage();
+        this.requestApi = request.getRequestURI();
+        this.httpCode = httpCode;
+        this.message = message;
     }
 }

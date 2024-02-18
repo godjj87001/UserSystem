@@ -11,11 +11,12 @@ public class UserBo  {
     private String username;
     private String newPassword; // §ó·s±K½X¡B§Ñ°O±K½X
     private String email;
-    String salt = "yosolo";
-    int iterations = 1000;
-    int keyLength = 256; // in bits
 
     public UserBo(UserRo userRo) {
+        String salt = "yosolo";
+        int iterations = 1000;
+        int keyLength = 256; // in bits
+
         UtilService utilService =new UtilService();
         this.setId(userRo.getId() != null ? userRo.getId() : null);
         this.setAccount(userRo.getAccount() != null ? userRo.getAccount() : null);

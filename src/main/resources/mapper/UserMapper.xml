@@ -6,23 +6,28 @@
 
     <!-- Create Database -->
     <update id="createDatabase">
-        CREATE DATABASE IF NOT EXISTS `user_system`;
+        CREATE
+        DATABASE IF NOT EXISTS `user_system`;
     </update>
 
     <!-- Create Table -->
-    <update id="createUserSystemTable">
+    <insert id="createUserSystemTable">
         CREATE TABLE `user_system`.`user`
         (
-            `id`         INT(11) NOT NULL AUTO_INCREMENT COMMENT 'Unique identifier',
-            `account`    VARCHAR(50)  NOT NULL COMMENT '帳號',
-            `password`   VARCHAR(255) NOT NULL DEFAULT '' COMMENT '密碼',
-            `username`   VARCHAR(50)  NOT NULL DEFAULT '' COMMENT 'User名稱' COLLATE 'utf8_general_ci',
-            `email`      VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'email',
-            `created_at` DATETIME     NOT NULL DEFAULT current_timestamp() COMMENT '建立時間',
-            `updated_at` DATETIME     NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp () COMMENT '最後更新時間',
-            PRIMARY KEY (`id`) USING BTREE
-        ) COMMENT='' COLLATE='utf8_general_ci' ENGINE=InnoDB;
-    </update>
+            `id`           BIGINT(19) NOT NULL AUTO_INCREMENT,
+            `account`      VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `username`     VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `password`     VARCHAR(512) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `email`        VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `created_time` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            `updated_time` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`) USING BTREE,
+            UNIQUE INDEX `account` (`account`) USING BTREE,
+            UNIQUE INDEX `email` (`email`) USING BTREE,
+            INDEX          `login` (`account`, `password`) USING BTREE
+        ) COLLATE='utf8mb4_general_ci'
+    ENGINE=InnoDB;
+    </insert>
     <!-- 插入一個用戶 -->
     <insert id="insertUser" parameterType="com.userSystem.model.UserBo">
         insert into user_system.user (account, password, username, email)
@@ -89,6 +94,17 @@
         </trim>
         WHERE account = #{account}
         AND password = #{password}
+    </update>
+    <!-- 根據 account、email 更新一個用戶密碼 -->
+    <update id="updatePassword">
+        UPDATE user_system.user
+        <set>
+            <if test="userBo.newPassword != null">
+                password = #{userBo.newPassword},
+            </if>
+        </set>
+        WHERE account = #{userBo.account}
+        OR email = #{email}
     </update>
 
 

@@ -39,6 +39,9 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
     // jwt auth0
     implementation 'com.auth0:java-jwt:3.18.1'
+    // redis
+    implementation 'redis.clients:jedis:5.1.0'
+
 }
 
 

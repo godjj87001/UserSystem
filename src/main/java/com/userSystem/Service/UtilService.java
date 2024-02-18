@@ -63,6 +63,8 @@ public class UtilService {
     }
 
     public  <T> T sendHttpPostRequest(String url, HttpEntity<?> requestEntity, Class<T> responseType) {
+        System.out.println("send post");
+        System.out.println(url);
         return sendHttpRequest(url, HttpMethod.POST, requestEntity, responseType);
     }
 

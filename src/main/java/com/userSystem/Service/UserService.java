@@ -3,12 +3,16 @@ package com.userSystem.Service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.userSystem.Enum.MessageEnum;
 import com.userSystem.dao.LogMapper;
 import com.userSystem.model.*;
 import com.userSystem.dao.UserMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,11 +27,16 @@ public class UserService {
     private UserMapper userMapper;
     private LogMapper logMapper;
     private UtilService utilService;
+    private JwtService jwtService;
 
-    UserService(UserMapper userMapper, UtilService utilService, LogMapper logMapper) {
+    @Value("${email_post_url}")
+    private String emailPostUrl;
+
+    UserService(UserMapper userMapper, UtilService utilService, LogMapper logMapper ,JwtService jwtService) {
         this.userMapper = userMapper;
         this.logMapper = logMapper;
         this.utilService = utilService;
+        this.jwtService = jwtService;
     }
 
 
@@ -45,47 +54,66 @@ public class UserService {
      * @param userRo  com.userSystem.user.model.UserRo
      * @param request
      */
-    public ResponseVo createUser(UserRo userRo, HttpServletRequest request) {
-        ResponseVo responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_CREATED).message("created ok ").build();
+    public ResponseEntity<?> createUser(UserRo userRo, HttpServletRequest request) {
+        HttpStatus httpStatus = HttpStatus.CREATED;
+        String message = "created ok";
+
         LogDto logDto;
+
         if (userRo.getUsername() != null && userRo.getAccount() != null && userRo.getPassword() != null && userRo.getEmail() != null && userRo.getConfirmPassword() != null) {
             try {
-                if (userRo.getPassword() == userRo.getConfirmPassword()) {
-                    UserVo userVo = loginUser(userRo);
-                    if (userVo.getAccount().equals(userRo.getAccount())) {
-                        responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_BAD_REQUEST).message("Duplicate account").build();
-                    } else if (userVo.getEmail().equals(userRo.getEmail())) {
-                        responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_BAD_REQUEST).message("Duplicate email").build();
+                if (userRo.getPassword().equals(userRo.getConfirmPassword())) {
+                    UserVo userVo = userMapper.selectUserByAccountOrEmail(new UserBo(userRo));
+                    if (userVo != null && userVo.getAccount().equals(userRo.getAccount())) {
+                        httpStatus = HttpStatus.BAD_REQUEST;
+                        message = "Duplicate account";
+                    } else if (userVo != null && userVo.getEmail().equals(userRo.getEmail())) {
+                        httpStatus = HttpStatus.BAD_REQUEST;
+                        message = "Duplicate email";
                     } else {
                         UserBo userBo = new UserBo(userRo);
                         userMapper.insertUser(userBo);
                     }
                 } else {
-                    responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_METHOD_NOT_ALLOWED).message("password and confirmPassword must be the same").build();
+                    httpStatus = HttpStatus.METHOD_NOT_ALLOWED;
+                    message = "password and confirmPassword must be the same";
                 }
-
             } catch (Exception e) {
                 log.error("" + e);
             }
         } else {
-            responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_BAD_REQUEST).message("Bad Request").build();
+            httpStatus = HttpStatus.BAD_REQUEST;
+            message = "Bad Request";
         }
-        logDto = new LogDto(userRo, request, responseVo);
+
+        ResponseEntity<String> responseEntity = new ResponseEntity<>(message, httpStatus);
+
+        logDto = new LogDto(userRo, request, httpStatus.value(), message);
         logMapper.insertApiLog(logDto);
-        return responseVo;
+
+        return responseEntity;
     }
 
-    public UserVo loginUser(UserRo userRo, HttpServletRequest request) {
-        UserVo userVo = loginUser(userRo);
-        ResponseVo responseVo;
-        if (userVo.getAccount() != null) {
-            responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_OK).message(MessageEnum.LOGIN_SUCCESS.getMessage()).build();
-        } else {
-            responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_UNAUTHORIZED).message(MessageEnum.ACCOUNT_PASSWORD_ERROR.getMessage()).build();
+
+    public ResponseEntity<UserVo> loginUser(UserRo userRo, HttpServletRequest request) {
+        HttpStatus httpStatus;
+        String message;
+        UserVo userVo = null;
+        try {
+            userVo = loginUser(userRo);
+            if (userVo.getAccount() != null) {
+                httpStatus = HttpStatus.OK;
+                message = MessageEnum.LOGIN_SUCCESS.getMessage();
+            } else {
+                httpStatus = HttpStatus.UNAUTHORIZED;
+                message = MessageEnum.ACCOUNT_PASSWORD_ERROR.getMessage();
+            }
+            LogDto logDto = new LogDto(userRo, request, httpStatus.value(), message);
+            logMapper.insertApiLog(logDto);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        LogDto logDto = new LogDto(userRo, request, responseVo);
-        logMapper.insertApiLog(logDto);
-        return userVo;
+        return ResponseEntity.ok().body(userVo);
     }
 
     public UserVo loginUser(UserRo userRo) {
@@ -104,11 +132,17 @@ public class UserService {
      * @param userRo  UserRo
      * @param request
      */
-    public ResponseVo updateUser(UserRo userRo, HttpServletRequest request) {
+    public ResponseEntity<?> updateUser(UserRo userRo, HttpServletRequest request) {
+        HttpStatus httpStatus;
+        String message;
+        ResponseEntity responseEntity;
         try {
             // 1. 更改密碼與確認密碼是否相同
             if (userRo.getPassword() != null && userRo.getConfirmPassword() != null && userRo.getNewPassword() != userRo.getConfirmPassword()) {
-                return ResponseVo.builder().httpCode(HttpServletResponse.SC_METHOD_NOT_ALLOWED).message("password and confirmPassword must be the same").build();
+                httpStatus = HttpStatus.METHOD_NOT_ALLOWED;
+                message = MessageEnum.PASSWORD_CONFIRM_PASSWORD_NOT_THE_SAME.getMessage();
+                logMapper.insertApiLog(new LogDto(userRo, request, httpStatus.value(), message));
+                return ResponseEntity.status(httpStatus).body(message);
             }
             // 2.檢查是否有User
             UserVo userVo = loginUser(userRo);
@@ -118,13 +152,16 @@ public class UserService {
                 // 4. updateUser
                 userMapper.updateUser(userBo);
             } else {
-                ResponseVo responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_UNAUTHORIZED).message("account or password error").build();
-                logMapper.insertApiLog(new LogDto(userRo, request, responseVo));
-                return responseVo;
+                httpStatus = HttpStatus.UNAUTHORIZED;
+                message = MessageEnum.ACCOUNT_PASSWORD_ERROR.getMessage();
+                logMapper.insertApiLog(new LogDto(userRo, request, httpStatus.value(), message));
+                return ResponseEntity.status(httpStatus).body(message);
             }
             ResponseVo responseVo = ResponseVo.builder().httpCode(HttpServletResponse.SC_ACCEPTED).message("update Success").build();
-            logMapper.insertApiLog(new LogDto(userRo, request, responseVo));
-            return responseVo;
+            httpStatus = HttpStatus.ACCEPTED;
+            message = MessageEnum.UPDATE_SUCCESS.getMessage();
+            logMapper.insertApiLog(new LogDto(userRo, request, httpStatus.value(), message));
+            return ResponseEntity.status(httpStatus).body(message);
         } catch (Exception e) {
             log.error("" + e);
             throw new RuntimeException(e);
@@ -142,26 +179,35 @@ public class UserService {
 
     /**
      * 忘記密碼
+     * 1. 檢查參數是否為空 ，是則回傳
+     * 2. userRo to Bo
+     * 3. select db
+     * 4. 如果email為空 回傳登入失敗
      *
      * @param userRo UserRo
      * @return ResponseVo
      */
-    public ResponseVo forgotPassword(UserRo userRo) {
-        if (userRo.getAccount() != null || userRo.getEmail() != null) {
-            UserBo userBo = new UserBo(userRo);
-            UserVo userVo = userMapper.selectUserByAccountOrEmail(userBo);
-            if (userVo.getEmail() != null) {
-                String jwtToken = generateJwtToken(userRo.getEmail());
-                EmailRO requestEntity = getForgotPasswordRequestEntity(jwtToken, userVo);
-                EmailRO emailRO = utilService.sendHttpPostRequest("/email", new HttpEntity<>(requestEntity), EmailRO.class);
-            } else {
-                ResponseVo.builder().httpCode(HttpServletResponse.SC_ACCEPTED).message(MessageEnum.ACCOUNT_PASSWORD_ERROR.getMessage()).build();
-            }
-            return ResponseVo.builder().httpCode(HttpServletResponse.SC_ACCEPTED).message("Success").build();
-        } else {
-            return ResponseVo.builder().httpCode(HttpServletResponse.SC_BAD_REQUEST).message("Bad Request").build();
+    public ResponseEntity<?> forgotPassword(UserRo userRo) {
+        // 1.檢查參數是否為空
+        if (userRo.getAccount() == null && userRo.getEmail() == null) {
+            return ResponseEntity.badRequest().body(MessageEnum.BAD_REQUEST.getMessage());
         }
+        // 2. userRo to Bo
+        UserBo userBo = new UserBo(userRo);
+        // 3. select db
+        UserVo userVo = userMapper.selectUserByAccountOrEmail(userBo);
+        // 4. 如果email為空 回傳登入失敗
+        if (userVo.getEmail() == null) {
+            return ResponseEntity.badRequest().body(MessageEnum.ACCOUNT_PASSWORD_ERROR.getMessage());
+        }
+        // 5. 生成 JWT token
+        String jwtToken = jwtService.generateJwtToken("email", userVo.getEmail());
+        EmailRO requestEntity = getForgotPasswordRequestEntity(jwtToken, userVo);
+        EmailRO emailRO = utilService.sendHttpPostRequest(emailPostUrl, new HttpEntity<>(requestEntity), EmailRO.class);
+
+        return ResponseEntity.accepted().build();
     }
+
 
     private EmailRO getForgotPasswordRequestEntity(String jwtToken, UserVo userVo) {
         EmailRO emailRO = new EmailRO();
@@ -171,17 +217,44 @@ public class UserService {
         return emailRO;
     }
 
-    private String generateJwtToken(String identifier) {
-        long EXPIRATION_TIME = 86400000; //24 hours
-        // Use your JWT library (e.g., Auth0 Java JWT) to create a token with the user identifier
-        // Example using Auth0 Java JWT:
-        Algorithm algorithm = Algorithm.HMAC256("forgotPassword");
-        return JWT.create()
-                .withClaim("email", identifier)
-                .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .sign(algorithm);
+
+
+
+    public ResponseEntity<?> changePassword(UserRo userRo, HttpServletRequest request) {
+        HttpStatus httpStatus = HttpStatus.ACCEPTED;
+        String message = "";
+
+        if (userRo.getAccessToken() != null) {
+            // 這裡檢查並使用JWT Token
+            DecodedJWT decodedJWT = jwtService.verifyJwt(userRo.getAccessToken());
+            if (decodedJWT != null && userRo.getNewPassword() != null && userRo.getConfirmPassword() != null) {
+                // JWT 驗證成功，繼續處理
+                String email = decodedJWT.getClaim("email").asString();
+                String newPassword = userRo.getNewPassword();
+                String confirmPassword = userRo.getConfirmPassword();
+                // 驗證新密碼和確認密碼是否匹配，進行相應的業務邏輯
+                if (newPassword.equals(confirmPassword)) {
+                    userMapper.updatePassword(new UserBo(userRo),email);
+                }
+
+                // 假設業務邏輯成功
+                return ResponseEntity.ok("Password changed successfully for user: " + email);
+            } else {
+                // JWT 驗證失敗
+                httpStatus = HttpStatus.UNAUTHORIZED;
+                message = MessageEnum.INVALID_JWT_TOKEN.getMessage();
+                return ResponseEntity.badRequest().body("Invalid JWT token");
+            }
+
+        } else {
+            return ResponseEntity.status(httpStatus).body(message);
+        }
     }
 
+    public ResponseEntity<String> getJwt (){
+        String jwtToken = jwtService.generateJwtToken("email", "godjj87001@gmail.com");
+        return ResponseEntity.ok(jwtToken);
+    }
 
 }
 

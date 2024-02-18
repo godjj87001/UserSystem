@@ -20,6 +20,8 @@ public interface UserMapper {
 
     void updateUser(UserBo userBo);
 
+    void updatePassword(@Param("userBo") UserBo userBo, @Param("email") String email);
+
     void updateUserById(UserRo userRo);
 
     void deleteUserById(Long id);
@@ -28,7 +30,9 @@ public interface UserMapper {
 
     List<UserRo> selectAllUser();
 
-    void createDatabase(@Param("dbName")String dbName);
-    void createUserSystem();
-    Integer checkTableExistence(@Param("dbName")String dbName, @Param("tableName") String tableName);
+    void createDatabase(@Param("dbName") String dbName);
+
+    void createUserSystemTable();
+
+    Integer checkTableExistence(@Param("dbName") String dbName, @Param("tableName") String tableName);
 }

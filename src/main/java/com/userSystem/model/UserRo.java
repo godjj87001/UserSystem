@@ -19,4 +19,5 @@ public class UserRo {
     private String email;
     private String newPassword; //change password
     private String confirmPassword; //check newPassword = confirmPassword
+    private String accessToken; // jwt
 }

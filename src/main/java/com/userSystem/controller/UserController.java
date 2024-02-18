@@ -22,22 +22,32 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public UserVo loginUser(@RequestBody UserRo userRo, HttpServletRequest request) {
+    public ResponseEntity<UserVo> loginUser(@RequestBody UserRo userRo, HttpServletRequest request) {
         return userService.loginUser(userRo,request );
     }
 
     @PostMapping("")
-    public ResponseVo createUser(@RequestBody UserRo userRo,HttpServletRequest request) {
+    public ResponseEntity<?> createUser(@RequestBody UserRo userRo,HttpServletRequest request) {
        return userService.createUser(userRo,request);
     }
 
     @PostMapping("/forgot_password")
-    public ResponseVo forgotPassword (@RequestBody UserRo userRo) {
+    public ResponseEntity<?> forgotPassword (@RequestBody UserRo userRo) {
         return userService.forgotPassword(userRo);
     }
 
+    @PutMapping("/change_password")
+    public ResponseEntity<?> changePassword(@RequestBody UserRo userRo,HttpServletRequest request) {
+        return userService.changePassword(userRo,request);
+    }
+
+    @PutMapping("/jwt")
+    public ResponseEntity<?> geJwt(@RequestBody UserRo userRo,HttpServletRequest request) {
+        return userService.getJwt();
+    }
+
     @PutMapping("")
-    public ResponseVo updateUser(@RequestBody UserRo userRo,HttpServletRequest request) {
+    public ResponseEntity<?> updateUser(@RequestBody UserRo userRo,HttpServletRequest request) {
         return userService.updateUser(userRo,request );
     }
 
