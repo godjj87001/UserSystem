@@ -5,7 +5,8 @@ import com.userSystem.model.ResponseVo;
 import com.userSystem.Service.UserService;
 import com.userSystem.model.UserRo;
 import com.userSystem.model.UserVo;
-import org.apache.catalina.connector.Request;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/user")
 @ResponseBody
+@Tag(name = "User", description = "CRUD")
 public class UserController {
     private UserService userService;
     public UserController(UserService userService) {
@@ -31,6 +33,10 @@ public class UserController {
        return userService.createUser(userRo,request);
     }
 
+    @Operation(
+            summary = "get JWT for changePassword . ",
+            description = "account or email")
+
     @PostMapping("/forgot_password")
     public ResponseEntity<?> forgotPassword (@RequestBody UserRo userRo) {
         return userService.forgotPassword(userRo);
@@ -41,10 +47,10 @@ public class UserController {
         return userService.changePassword(userRo,request);
     }
 
-    @PutMapping("/jwt")
-    public ResponseEntity<?> geJwt(@RequestBody UserRo userRo,HttpServletRequest request) {
-        return userService.getJwt();
-    }
+//    @PutMapping("/jwt")
+//    public ResponseEntity<?> geJwt(@RequestBody UserRo userRo,HttpServletRequest request) {
+//        return userService.getJwt();
+//    }
 
     @PutMapping("")
     public ResponseEntity<?> updateUser(@RequestBody UserRo userRo,HttpServletRequest request) {

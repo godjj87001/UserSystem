@@ -198,7 +198,7 @@ public class UserService {
         UserVo userVo = userMapper.selectUserByAccountOrEmail(userBo);
         // 4. 如果email為空 回傳登入失敗
         if (userVo.getEmail() == null) {
-            return ResponseEntity.badRequest().body(MessageEnum.ACCOUNT_PASSWORD_ERROR.getMessage());
+            return ResponseEntity.badRequest().body(MessageEnum.BAD_REQUEST.getMessage());
         }
         // 5. 生成 JWT token
         String jwtToken = jwtService.generateJwtToken("email", userVo.getEmail());
@@ -236,7 +236,6 @@ public class UserService {
                 if (newPassword.equals(confirmPassword)) {
                     userMapper.updatePassword(new UserBo(userRo),email);
                 }
-
                 // 假設業務邏輯成功
                 return ResponseEntity.ok("Password changed successfully for user: " + email);
             } else {
